@@ -16,8 +16,11 @@ def graph_scree(S):
 def reduce_data(U, S, k):
     return np.matmul(U[:, :k], np.diag(S[:k]))
 
-def plot_2PC(data):
+def plot_2PC(data, df, annotate=False):
     plt.scatter(data[:, 0], data[:, 1])
+    if annotate:
+        for i in range(data.shape[0]):
+            plt.annotate(df.loc[i, "Name"], (data[i, 0], data[i, 1]))
     plt.title("2 Component PCA")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")
