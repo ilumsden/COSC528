@@ -13,14 +13,11 @@ def graph_scree(S):
     plt.ylabel('Percentage of Variance Covered')
     plt.show()
 
-def reduce_data(data, V, k):
-    V = V.T
-    return np.matmul(data, V[:, :k])
+def reduce_data(U, S, k):
+    return np.matmul(U[:, :k], np.diag(S[:k]))
 
 def plot_2PC(data):
-    X = data[:, 0]
-    Y = data[:, 1]
-    plt.scatter(X, Y)
+    plt.scatter(data[:, 0], data[:, 1])
     plt.title("2 Component PCA")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")

@@ -13,33 +13,35 @@ def drop_unnessecary_data(df):
         except ValueError:
             continue
     df.drop(index=range(i, num_rows), inplace=True)
-    df.drop(df.columns[[0, 1, 2]], axis=1, inplace=True)
+    df.drop(df.columns[[0, 1, 2, 4]], axis=1, inplace=True)
 
 def convert_discrete(df):
-    for i, v in df["HBC"].iteritems():
+    df["2014 Med School"] = df["2014 Med School"].map({"x": 1, "pre clin": 0, float("nan"): float("nan")})
+    df["Vet School"] = df["Vet School"].map({"x": 1, float("nan"): float("nan")})
+    """for i, v in df["HBC"].iteritems():
         if str(v) == "No":
-            df.loc[i, "HBC"] = 0.0
+            df.loc[i, "HBC"] = -1.0
         else:
             df["HBC"][i] = 1.0
     for i, v in df["2014 Med School"].iteritems():
         try:
             if np.isnan(float(v)):
-                df.loc[i, "2014 Med School"] = 0.0
+                df.loc[i, "2014 Med School"] = -1.0
                 continue
         except ValueError:
             pass
         if str(v) == "x":
-            df.loc[i, "2014 Med School"] = 1.0
+            df.loc[i, "2014 Med School"] = 0.0
         else:
-            df.loc[i, "2014 Med School"] = 2.0
+            df.loc[i, "2014 Med School"] = 1.0
     for i, v in df["Vet School"].iteritems():
         try:
             if np.isnan(float(v)):
-                df.loc[i, "Vet School"] = 0.0
+                df.loc[i, "Vet School"] = -1.0
                 continue
         except ValueError:
             pass
-        df.loc[i, "Vet School"] = 1.0
+        df.loc[i, "Vet School"] = 1.0"""
 
 # Assumes unnesecary data is removed
 def remove_dollar_signs(df):
@@ -67,8 +69,8 @@ def remove_nan(data):
                 data[r, i] = m
 
 def normalize(data):
-    #from scipy import stats
-    #return stats.zscore(data, axis=1)
-    means = np.mean(data, axis=1)
-    means = np.reshape(means, (len(means), 1))
-    return np.subtract(data, means)
+    from scipy import stats
+    return stats.zscore(data, axis=1)
+    #means = np.mean(data, axis=1)
+    #means = np.reshape(means, (len(means), 1))
+    #return np.subtract(data, means)
