@@ -41,14 +41,14 @@ class kNearestNeighbors:
         self.k = k
         if isinstance(train_data, pd.DataFrame):
             self.train_data = train_data.values
-        elif isinstance(train_data, np.array):
+        elif isinstance(train_data, np.ndarray):
             self.train_data = train_data
         else:
             raise TypeError("kNearestNeighbors only supports Pandas DataFrames \
                              or Numpy Arrays.")
         if isinstance(train_labels, (pd.DataFrame, pd.Series)):
             self.train_labels = train_labels.values
-        elif isinstance(train_data, np.array):
+        elif isinstance(train_data, np.ndarray):
             self.train_labels = train_labels
         else:
             raise TypeError("kNearestNeighbors only supports Pandas DataFrames \
@@ -82,7 +82,7 @@ class kNearestNeighbors:
         if isinstance(data, pd.DataFrame):
             cdata = data.values
             cdata.astype(dtype=np.float64, copy=False)
-        elif isinstance(data, np.array):
+        elif isinstance(data, np.ndarray):
             cdata = data
         else:
             raise TypeError("kNearestNeighbors only supports Pandas DataFrames \
