@@ -1,5 +1,15 @@
 import numpy as np
-from scipy.special import expit, softmax
+from scipy.special import expit
+from neuron import Neuron
+
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0)
+
+def softmax_prime(x):
+
+def sigmoid_prime(x):
+    return x * (1.0 - x)
 
 class Network:
 
@@ -56,11 +66,57 @@ class Network:
             next_data = []
         return self._evaluate_output(input_data)
 
-    def _leaky_relu_derivative(self, data):
-        return np.array([1 if x > 0 else self.relu_multiplier for x in data])
-
+    # Algo:
+    #  * expected - output
+    #  * Multiply by derivative of activation for last layer
+    #  * For each previous node:
+    #  *   Multiply the errors by the weights corresponding to the current node
+    #  *   Multiply the last step's result by the derivative of the hidden layer activation
+    #  * For all nodes: final change in error is the dot product of the node's output and its error
+    # Link: https://stackoverflow.com/questions/50105249/implementing-back-propagation-using-numpy-and-python-for-cleveland-dataset
     def backpropagate_errors(self, output, expected):
-        error = expected - output
-        o_delta = error * self._leaky_relu_derivative(output)
-        for d in o_delta:
-            self.output_layer[i].update_weights(self.learning_rate, o_delta[i])
+        output_error = expected - output
+        o_delta = output_error * self._leaky_relu_derivative(output)
+        for i, d in enumerate(o_delta):
+            self.output_layer[i].delta = d
+        for i in reversed(range(len(self.hidden_layers))):
+            for j in range(len(self.hidden_layers[i])):
+                if i == len(self.hidden_layers) - 1:
+                    for n in range(len(self.output_layer)):
+                        self.hidden_layers[i][j].delta = self.output_layer[n].weights[j] * \
+                            self.output_layer[n].delta
+                else:
+                    for n in self.hidden_layers[i+1]:
+                        self.hidden_layers[i][j].delta = self.hidden_layers[i+1][n].weights[j] * \
+                            self.hidden_layers[i+1][n].delta
+
+    def update_weights(self):
+        for i in range(len(self.hidden_layers)):
+            for j in range(len(self.hidden_layers[i])):
+                print("Hidden Layer {0:d}, Neuron {1:d}".format(i, j))
+                self.hidden_layers[i][j].update_weights(self.learning_rate)
+        for i in range(len(self.output_layer)):
+            print("Output Layer: Neuron {}".format(i))
+            self.output_layer[i].update_weights(self.learning_rate)
+
+    def train(self, data, labels):
+        # Data assumed to be pre-randomized
+        epoch = 0
+        prev_error = 0
+        while epoch < self.num_iterations:
+            error = 0
+            for d, l in zip(data, labels):
+                expected = np.array([1.0 if i == l else 0.0 for i in range(self.num_outputs)])
+                output = self.forward_propagate(d)
+                self.backpropagate_errors(output, expected)
+                self.update_weights()
+                error += sum([(expected[i]-output[i])**2 for i in range(len(expected))])
+            print("Epoch {0:d}: Error = {1:f}".format(epoch, error))
+            if error < self.threshold:
+                print("  Error threshold met. Ending training.")
+                break
+            if abs(prev_error - error) < self.error_delta_threshold:
+                print("  Threshold for change in error met. Ending training.")
+                break
+            epoch += 1
+            prev_error = error
