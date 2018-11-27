@@ -1,32 +1,32 @@
-from scipy.special import expit, softmax
 import numpy as np
+from scipy.special import expit
 
 class Neuron:
 
-    def __init__(self, num_inputs, output_node=False, activation="sigmoid", relu_bound=0.01):
+    def __init__(self, num_inputs, hidden=True, relu_multiplier=0.01):
         self.num_inputs = num_inputs
-        self.output_node = output_node
-        self.weights = np.random.rand(num_inputs, 1)
-        self.bias = np.random.randint(0, 1)
-        if output_node:
-            if activation == "softmax":
-                self.activation_key = "linear"
-            else:
-                self.activation_key = activation
-        else:
-            self.activation_key = "relu"
-        self.alpha = abs(relu_bound)
+        self.hidden = hidden
+        self.weights = np.random.uniform(size=num_inputs)
+        self.bias = np.random.uniform()
+        self.relu_multiplier = relu_multiplier
+        self.data = []
 
-    def activate(self, reduced):
-        if self.activation_key == "linear":
-            return reduced
-        elif self.activation_key == "sigmoid":
-            return expit(reduced)
-        elif self.activation_key == "relu":
-            return reduced if reduced > self.alpha*reduced else self.alpha * reduced
-        else:
-            raise ValueError("Invalid activation key")
+    def get_weights(self):
+        return self.weights
 
-    def calculate(self, x):
-        reduced = np.dot(self.weights, x) + self.bias
-        return self.activate(reduced)
+    def get_bias(self):
+        return self.bias
+
+    def evaluate(self, input_data):
+        self.data = input_data
+        reduced = np.dot(input_data, self.weights) + self.bias
+        if hidden:
+            reduced = reduced if reduced > 0 else self.relu_multiplier * reduced
+        return reduced
+
+    def reset_input_data(self):
+        self.data = []
+
+    def update_weights(self, learning_rate, error):
+        for i, _ in enumerate(self.weights):
+            self.weights[i] += learning_rate * error * self.data[i]
