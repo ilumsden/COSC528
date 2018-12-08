@@ -69,7 +69,7 @@
     \section{Problem 1}
     
     \subsection{Data and Imputation}
-    The data for problem 1 consisted of 34 continuous numbers representing the features, along with one discrete columns of "g" or "b" representing the classes. Before using the data, the class data was altered so that "b" became 0 and "g" became 1. The general algorithm was followed for the rest of the problem. The Grid Search used F1 score as the scoring measure.
+    The data for problem 1 consisted of 34 continuous numbers representing the features, along with one discrete column of "g" or "b" representing the classes. Before using the data, the class data was altered so that "b" became 0 and "g" became 1. The general algorithm was followed for the rest of the problem. The Grid Search used F1 score as the scoring measure.
     
     \subsection{Results}
     After the coarse Grid Search, the best SVC model had $C = 1$, $Gamma = 0.1$, and a RBF kernel. During training, this model produced a F1 score of 0.94561929. Scikit-Learn was used to produce the following classification report for this model:
@@ -113,6 +113,51 @@
     		Weighted Avg & 0.99 & 0.99 & 0.99 & 248 \\ \hline
     	\end{tabular}
     \end{center}
-    For the fine Grid Search, the RBF kernel was used, with C values from 7.5 to 12.5 by 0.5 and Gamma values from 0.075 to 0.125 by 0.005. The step size was chosen to save time because using log loss as the error slows down the SVC model. The log loss of this model during training was 0.21502784. During testing, the log loss was 0.10493455. The classification report was the same as the course search, so it is not shown.
+    For the fine Grid Search, the RBF kernel was used, with C values from 7.5 to 12.5 by 0.5 and Gamma values from 0.075 to 0.125 by 0.005. The step size was chosen to save time because using log loss as the error slows down the SVC model. The best model's hyperparameters were determined to be $C = 7.5$, $Gamma = 0.115$, and a RBF kernel. The log loss of this model during training was 0.21502784. During testing, the log loss was 0.10493455. The classification report was the same as the course search, so it is not shown.
+    
+    \section{Problem 3}
+    
+    \subsection{Data and Imputation}
+    The data for problem 3 consisted of 36 continuous features with values between 0 and 255 and a classification with value 1 to 7 inclusive, although no instances of class 6 existed. Each feature represents a pixel in one of four spectral images. Unlike the other two problems, the data for this problem was split between two files: a training file, \textit{sat.trn}, and a testing file, \textit{sat.tst}. As a result, the data was not manually split with \textit{train\_test\_split}. Additionally, the non-label data for both sets had to be standardized individually using $\sigma$ and $\mu$ from the training set. The general algorithm was followed for the rest of the problem. Because the classification was not binary, log loss was used as the scoring measure for the Grid Search. Additionally, since the \textit{sat.name} file said not to apply cross-validation to the data, the \textit{cv} parameter of \textit{GridSearchCV} was set to 2 instead of 3.
+    
+    \subsection{Results}
+    After the coarse Grid Search, the best SVC model had $C = 0.1$, $Gamma = 0.1$, and a RBF kernel. During training, this model produced a log loss score of 0.46132665. Scikit-Learn was used to produce the following classification report for this model:
+    \begin{center}
+    	\begin{tabular}{| c | c | c | c | c |}
+    		\hline
+    		& Precision & Recall & F1-Score & support \\ \hline
+    		Class 1 & 0.95 & 0.99 & 0.97 & 461 \\ \hline
+    		Class 2 & 0.93 & 0.99 & 0.96 & 224 \\ \hline
+    		Class 3 & 0.86 & 0.96 & 0.90 & 397 \\ \hline
+    		Class 4 & 0.74 & 0.52 & 0.61 & 211 \\ \hline
+    		Class 5 & 0.93 & 0.77 & 0.84 & 237 \\ \hline
+    		Class 7 & 0.83 & 0.87 & 0.85 & 470 \\ \hline
+    		Micro Avg & 0.88 & 0.88 & 0.88 & 2000 \\ \hline
+    		Macro Avg & 0.87 & 0.85 & 0.86 & 2000 \\ \hline
+    		Weighted Avg & 0.88 & 0.88 & 0.87 & 2000 \\ \hline
+    	\end{tabular}
+    \end{center}
+    For the fine Grid Search, the RBF kernel was used, with C values from 0.075 to 0.125 by 0.005 and Gamma values from 0.075 to 0.125 by 0.005. The step size was chosen to save time because using log loss as the error slows down the SVC model. The best model hyperparameters were determined to be $C = 0.085$, $Gamma = 0.12$, and a RBF kernel. The log loss of this model during training was 0.46033781. During testing, the log loss was 0.30876334. The classification report was slightly different than the coarse grid and is shown below:
+    \begin{center}
+    	\begin{tabular}{| c | c | c | c | c |}
+    		\hline
+    		& Precision & Recall & F1-Score & support \\ \hline
+    		Class 1 & 0.95 & 0.99 & 0.97 & 461 \\ \hline
+    		Class 2 & 0.89 & 0.99 & 0.94 & 224 \\ \hline
+    		Class 3 & 0.85 & 0.95 & 0.90 & 397 \\ \hline
+    		Class 4 & 0.75 & 0.52 & 0.61 & 211 \\ \hline
+    		Class 5 & 0.93 & 0.76 & 0.83 & 237 \\ \hline
+    		Class 7 & 0.84 & 0.87 & 0.85 & 470 \\ \hline
+    		Micro Avg & 0.88 & 0.88 & 0.88 & 2000 \\ \hline
+    		Macro Avg & 0.87 & 0.85 & 0.85 & 2000 \\ \hline
+    		Weighted Avg & 0.87 & 0.88 & 0.87 & 2000 \\ \hline
+    	\end{tabular}
+    \end{center}
+
+    \section{Conclusion}
+    All three models performed very well at their respective tasks. For the first problem, the F1 testing score being very close to 1 means that there were almost no false positives or negatives, meaning the model was very accurate. For the second problem, the near-zero value of the log loss suggests that the model had little variance between the predicted values and the actual labels. This means that the model was very accurate as well. The third model was by far the worst, with its testing log loss score suggesting a decent, but not great level of accuracy. All three of these models could possibly have been improved by considering a sigmoid kernel or more hyperparameter values in the coarse Grid Search. However, all three models are quite good at their tasks, and any additional gains would likely be minimal.
+    
+    \section{Code}
+    All code for this project can be found in \textit{project5.ipynb}. The code uses Markdown cells to divide the different problems.
 	
 \end{document}
