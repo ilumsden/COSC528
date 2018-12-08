@@ -1,0 +1,118 @@
+\documentclass[12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tabularx, booktabs, makecell}
+
+\title{COSC 528: Project 5}
+\author{Ian Lumsden}
+
+\begin{document}
+	\pagenumbering{gobble}
+	\maketitle
+	\newpage
+	\pagenumbering{arabic}
+	
+	\section{Objective}
+	The goal of this project was to use support vector classifiers (SVCs) to solve three classification problems. The first problem was predicting \textit{good} vs \textit{bad} interactions of radar signals with electrons in the ionosphere. The second was classifying vowel sounds. The third and final was classifying the type of terrain from flattened pixel data from several multispectral satellite images. All of these problems were implemented using \textit{SVC}, \textit{StandardScaler}, \textit{train\_test\_split}, and \textit{GridSearchCV} from scikit-learn.
+	
+	\section{General Algorithm}
+	The code for each of the three solutions followed the same general algorithm, described below. All deviations from this algorithm are stated in the section for the particular problem.
+	\begin{enumerate}
+		\item Read the dataset from file
+		\item Clean the data so there are no invalid values
+		\item Split the data into data and labels
+		\item Standardize the data using \textit{StandardScaler}
+		\item Split the data into training and testing sets
+		\item Run a \textit{SVC} model through a course Grid Search (3-Fold Cross Validation)
+		\item Run a \textit{SVC} model through a fine Grid Search (3-Fold Cross Validation) based on the outcome of the last step
+	\end{enumerate}
+    All problems used the same set of potential hyperparameters for the coarse Grid Search:
+    \paragraph{}
+    \begin{center}
+    \begin{tabular}{| c |}
+    	\hline Linear \\ \hline
+    	C \\ \hline
+    	0.01 \\
+    	0.1 \\
+        1 \\
+        10 \\
+        100 \\
+    	1000 \\ \hline
+    \end{tabular}
+    \quad
+    \begin{tabular}{| c | c | c |}
+    	\hline
+    	\multicolumn{3}{|c|}{Polynomial} \\ \hline
+    	Degree & C & Gamma \\ \hline
+    	2 & 0.01 & 1 \\
+    	3 & 0.1 & 0.1 \\
+    	4 & 1 & 0.01 \\
+    	  & 10 & 0.001 \\
+    	  & 100 & 0.0001 \\
+    	  & 1000 & \\ \hline
+    \end{tabular}
+    \quad
+    \begin{tabular}{| c | c |}
+    	\hline
+    	\multicolumn{2}{|c|}{RBF} \\ \hline
+    	C & Gamma \\ \hline
+    	0.01 & 1 \\
+    	0.1 & 0.1 \\
+    	1 & 0.01 \\
+    	10 & 0.001 \\
+    	100 & 0.0001 \\
+    	1000 & \\ \hline
+    \end{tabular}
+    \end{center}
+
+    \section{Problem 1}
+    
+    \subsection{Data and Imputation}
+    The data for problem 1 consisted of 34 continuous numbers representing the features, along with one discrete columns of "g" or "b" representing the classes. Before using the data, the class data was altered so that "b" became 0 and "g" became 1. The general algorithm was followed for the rest of the problem. The Grid Search used F1 score as the scoring measure.
+    
+    \subsection{Results}
+    After the coarse Grid Search, the best SVC model had $C = 1$, $Gamma = 0.1$, and a RBF kernel. During training, this model produced a F1 score of 0.94561929. Scikit-Learn was used to produce the following classification report for this model:
+    \begin{center}
+    	\begin{tabular}{| c | c | c | c | c |}
+    		\hline
+    		& Precision & Recall & F1-Score & support \\ \hline
+    		Class 0 & 0.95 & 0.97 & 0.96 & 38 \\ \hline
+    		Class 1 & 0.98 & 0.96 & 0.97 & 50 \\ \hline
+    		Micro Avg & 0.97 & 0.97 & 0.97 & 88 \\ \hline
+    		Macro Avg & 0.96 & 0.97 & 0.97 & 88 \\ \hline
+    		Weighted Avg & 0.97 & 0.97 & 0.97 & 88 \\ \hline
+    	\end{tabular}
+    \end{center}
+    For the fine Grid Search, the RBF kernel was used, with C values from 0.75 to 1.25 by 0.01 and Gamma values from 0.075 to 0.125 by 0.001. The fine Grid Search showed that the model with the same hyperparameters as the coarse Grid Search was best. After generating the classification report (which was the same as the course search), the F1 score for prediction was determined to be 0.96969697.
+    
+    \section{Problem 2}
+    
+    \subsection{Data and Imputation}
+    The data for problem 2 consisted of 12 features and one class feature with discrete values between 0 and 10 inclusive. The first three features represented the pre-determined train-test split, an ID for the speaker who provided the data, and the sex of the speaker. For the purposes of this classification, these three features were not needed, so they were removed. The general algorithm was followed for the rest of the problem. Because the classification was not binary, log loss was used as the scoring measure for the Grid Search.
+    
+    \subsection{Results}
+    After the coarse Grid Search, the best SVC model had $C = 10$, $Gamma = 0.1$, and a RBF kernel. During training, this model produced a log loss score of 0.22487192. Scikit-Learn was used to produce the following classification report for this model:
+    \begin{center}
+    	\begin{tabular}{| c | c | c | c | c |}
+    		\hline
+    		& Precision & Recall & F1-Score & support \\ \hline
+    		Class 0 & 1.00 & 1.00 & 1.00 & 27 \\ \hline
+    		Class 1 & 1.00 & 1.00 & 1.00 & 20 \\ \hline
+    		Class 2 & 1.00 & 1.00 & 1.00 & 22 \\ \hline
+    		Class 3 & 1.00 & 1.00 & 1.00 & 20 \\ \hline
+    		Class 4 & 0.96 & 1.00 & 0.98 & 25 \\ \hline
+    		Class 5 & 1.00 & 0.91 & 0.95 & 23 \\ \hline
+    		Class 6 & 1.00 & 1.00 & 1.00 & 23 \\ \hline
+    		Class 7 & 1.00 & 1.00 & 1.00 & 24 \\ \hline
+    		Class 8 & 1.00 & 1.00 & 1.00 & 17 \\ \hline
+    		Class 9 & 1.00 & 1.00 & 1.00 & 27 \\ \hline
+    		Class 10 & 0.95 & 1.00 & 0.98 & 20 \\ \hline
+    		Micro Avg & 0.99 & 0.99 & 0.99 & 248 \\ \hline
+    		Macro Avg & 0.99 & 0.99 & 0.97 & 248 \\ \hline
+    		Weighted Avg & 0.99 & 0.99 & 0.99 & 248 \\ \hline
+    	\end{tabular}
+    \end{center}
+    For the fine Grid Search, the RBF kernel was used, with C values from 7.5 to 12.5 by 0.5 and Gamma values from 0.075 to 0.125 by 0.005. The step size was chosen to save time because using log loss as the error slows down the SVC model. The log loss of this model during training was 0.21502784. During testing, the log loss was 0.10493455. The classification report was the same as the course search, so it is not shown.
+	
+\end{document}
