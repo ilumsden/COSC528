@@ -7,9 +7,13 @@ def softmax(x):
     return e_x / e_x.sum(axis=0)
 
 def softmax_prime(x):
+    return expit(x) * (1.0 - expit(x))
 
 def sigmoid_prime(x):
     return x * (1.0 - x)
+
+def relu_prime(x, relu_multiplier):
+    return 1 if x < 0 else relu_multiplier
 
 class Network:
 
@@ -46,6 +50,9 @@ class Network:
         for i in range(self.num_outputs):
             pre_active.append(self.output_layer[i].evaluate(input_data))#np.dot(input_data, self.output_layer[i]["weights"]) + \
                 #self.output_layer[i]["bias"])
+        if np.max(pre_active) == np.inf:
+            print(input_data)
+            print(self.output_layer[0].weights)
         if self.output_activation == "linear":
             return pre_active
         elif self.output_activation == "sigmoid":
@@ -64,7 +71,7 @@ class Network:
                 next_data.append(self.hidden_layers[i][j].evaluate(input_data))
             input_data = next_data
             next_data = []
-        return self._evaluate_output(input_data)
+        return np.array(self._evaluate_output(input_data))
 
     # Algo:
     #  * expected - output
@@ -72,11 +79,16 @@ class Network:
     #  * For each previous node:
     #  *   Multiply the errors by the weights corresponding to the current node
     #  *   Multiply the last step's result by the derivative of the hidden layer activation
-    #  * For all nodes: final change in error is the dot product of the node's output and its error
+    #  * For all nodes: final change in error is the dot product of the layer's input and its error
     # Link: https://stackoverflow.com/questions/50105249/implementing-back-propagation-using-numpy-and-python-for-cleveland-dataset
     def backpropagate_errors(self, output, expected):
-        output_error = expected - output
-        o_delta = output_error * self._leaky_relu_derivative(output)
+        output_error = np.absolute(expected - output)
+        if self.output_activation == "softmax":
+            o_delta = output_error * softmax_prime(output)
+        elif self.output_activation == "sigmoid":
+            o_delta = output_error * sigmoid_prime(output)
+        else:
+            o_delta = output_error
         for i, d in enumerate(o_delta):
             self.output_layer[i].delta = d
         for i in reversed(range(len(self.hidden_layers))):
@@ -85,24 +97,29 @@ class Network:
                     for n in range(len(self.output_layer)):
                         self.hidden_layers[i][j].delta = self.output_layer[n].weights[j] * \
                             self.output_layer[n].delta
+                    self.hidden_layers[i][j].delta *= relu_prime(self.hidden_layers[i][j].delta, self.relu_multiplier)
                 else:
                     for n in self.hidden_layers[i+1]:
                         self.hidden_layers[i][j].delta = self.hidden_layers[i+1][n].weights[j] * \
                             self.hidden_layers[i+1][n].delta
+                    self.hidden_layers[i][j].delta *= relu_prime(self.hidden_layers[i][j].delta, self.relu_multiplier)
 
     def update_weights(self):
         for i in range(len(self.hidden_layers)):
             for j in range(len(self.hidden_layers[i])):
-                print("Hidden Layer {0:d}, Neuron {1:d}".format(i, j))
+                #print("Hidden Layer {0:d}, Neuron {1:d}".format(i, j))
                 self.hidden_layers[i][j].update_weights(self.learning_rate)
+                self.hidden_layers[i][j].reset_training_data()
         for i in range(len(self.output_layer)):
-            print("Output Layer: Neuron {}".format(i))
+            #print("Output Layer: Neuron {}".format(i))
             self.output_layer[i].update_weights(self.learning_rate)
+            self.output_layer[i].reset_training_data()
 
     def train(self, data, labels):
         # Data assumed to be pre-randomized
         epoch = 0
         prev_error = 0
+        N = 1/len(data)
         while epoch < self.num_iterations:
             error = 0
             for d, l in zip(data, labels):
@@ -111,7 +128,8 @@ class Network:
                 self.backpropagate_errors(output, expected)
                 self.update_weights()
                 error += sum([(expected[i]-output[i])**2 for i in range(len(expected))])
-            print("Epoch {0:d}: Error = {1:f}".format(epoch, error))
+            error *= N
+            print("Epoch {0:d}: Error = {1:f}".format(epoch+1, error))
             if error < self.threshold:
                 print("  Error threshold met. Ending training.")
                 break
@@ -120,3 +138,23 @@ class Network:
                 break
             epoch += 1
             prev_error = error
+
+    def estimate(self, data):
+        estimates = []
+        for d in data:
+            output = self.forward_propagate(d)
+            estimates.append(np.argmax(output))
+        return estimates
+
+    def test(self, data, labels):
+        run = 1
+        average = 0
+        N = 1/len(data)
+        for d, l in zip(data, labels):
+            expected = np.array([1.0 if i == l else 0.0 for i in range(self.num_outputs)])
+            output = self.forward_propagate(d)
+            #print("output:", output)
+            error = sum([(expected[i]-output[i])**2 for i in range(len(expected))])
+            average += error
+        average *= N
+        print("Average Error is {0:f}".format(average))

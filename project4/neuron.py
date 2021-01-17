@@ -23,6 +23,7 @@ class Neuron:
         reduced = np.dot(input_data, self.weights) + self.bias
         if self.hidden:
             reduced = reduced if reduced > 0 else self.relu_multiplier * reduced
+        self.output = reduced
         return reduced
 
     def reset_training_data(self):
@@ -31,9 +32,13 @@ class Neuron:
 
     def update_weights(self, learning_rate):
         for i, _ in enumerate(self.weights):
-            print("  Old weight:", self.weights[i])
-            print("    Delta = {0:f}, LR = {1:f}, Input = {2:f}".format(self.delta, learning_rate, self.data[i]))
-            self.weights[i] += learning_rate * self.delta# * self.data[i]
-            print("  New weight:", self.weights[i])
-            print()
+            #print("  Old weight:", self.weights[i])
+            #print("    Delta = {0:f}, LR = {1:f}, Input = {2:f}".format(self.delta, learning_rate, self.data[i]))
+            self.weights[i] += learning_rate * self.delta * self.data[i]
+            #print("  New weight:", self.weights[i])
+            #print()
+            #if not self.hidden:
+                #print("  New weight:", self.weights[i])
         self.bias += learning_rate * self.delta
+        #if not self.hidden:
+            #print("  New bias:", self.bias)
